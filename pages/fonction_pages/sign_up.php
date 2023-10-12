@@ -14,7 +14,7 @@
 <body class="form-v10">
 	<div class="page-content">
 		<div class="form-v10-content">
-			<form class="form-detail" action="add_user.php" method="post" id="myform">
+			<form class="form-detail" action="add_user.php" method="POST" id="myform">
 				<div class="form-left">
 					<h2>Infomation Géneral </h2>
 					<div class="form-group">

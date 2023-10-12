@@ -13,6 +13,12 @@
 
 
             ?>
+            <div >
+                <p>
+                    la date du jours est:
+                    
+                </p>
+            </div>
             <div class="d-flex flex-row aligni-items-center justify-content-between mx-sm-3">
                 <h1><?php echo  $month->toString();?></h1>
                 <div>
@@ -33,7 +39,7 @@
                                         <div class="calendar__weekday">
                                         <?php echo $day; ?>
                                         </div>
-                                    <?php endif; ?>
+                                    <?php endif; ?>   
                                         <form action="main_for_user.php?page=aceuil" method="get">
                                             <input type="hidden" name="year" value="<?php echo $date->format('Y'); ?>">
                                             <input type="hidden" name="month" value="<?php echo $date->format('m'); ?>">
@@ -44,7 +50,7 @@
                                                 </div>
                                             </button>
                                         </form>
-
+                                         
 
 
                                 </td>
@@ -58,28 +64,8 @@
             </table>
         </div>
         <div class="col-md-5 ">
-            <?php 
-                if (isset($_SESSION['role'])) {
-                    // Vous pouvez accéder aux autres informations de l'utilisateur stockées en session ici.
-                    $role = $_SESSION['role'];
-                    // Par exemple, vous pouvez avoir d'autres informations stockées dans la session comme le nom de l'utilisateur.
-                    $username = $_SESSION['username'];
-                
-                    // Vous pouvez maintenant utiliser ces informations comme bon vous semble, par exemple, les afficher.
-                    echo "Bienvenue, $username ! Votre rôle est : $role";
-                
-                    // Vous pouvez également effectuer d'autres opérations en fonction des informations de l'utilisateur.
-                    if ($role === 'utilisateur') {
-                        // Faites quelque chose pour les utilisateurs.
-                    } elseif ($role === 'admin') {
-                        // Faites quelque chose de différent pour les administrateurs.
-                    }
-                } else {
-                    // La session ne contient pas d'informations sur l'utilisateur.
-                    // Vous pouvez rediriger l'utilisateur vers une page de connexion ou effectuer d'autres actions en conséquence.
-                    echo "Vous n'êtes pas connecté ou votre rôle n'est pas défini.";
-                }
-            ?>
+           <h2>Les heures du jours </h2>
+           
         </div>
     </div>
 </div>
