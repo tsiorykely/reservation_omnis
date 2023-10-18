@@ -61,7 +61,7 @@ $heures = $intervalle->get_heure_debut();
         <table class="table calendar__table calendar__table--<?php echo $month->getWeeks(); ?>weeks">
             <tbody>
                 
-            <form action="class/insertion_reservation.php" method="post">    
+              
                 <?php for ($i=0; $i < $month->getWeeks(); $i++): ?>
 
                     <div>
@@ -99,39 +99,42 @@ $heures = $intervalle->get_heure_debut();
                                             </table>
                                             </div>
                                         </div>
-                                    </th>
-                                    
+                                    </th> 
+                    <form action="class/insertion_reservation.php" method="post">
                                         <?php foreach ($month->days as $k => $day): $date=(clone $firstDay)->modify("+".($k +$i * 7 )."days") ?>
-                                            <th style="width: 19%;" class="case <?php echo $month->withinMonth($date) ? '': 'calendar__othermonth'?>" >
+                                            <th style="width: 19%;" class="" >
                                                 <div>
-                                                        <div class="calendar__day">
+                                                        
+                                                        <table ><div class="calendar__day">
                                                             <?php echo $day; ?>
                                                             <?php echo $date->format('d/M/Y') ; ?>
                                                         </div>
-                                                        <table >
                                                                         <?php
                                                                             
                                                                             foreach ($heures as $heure) {
                                                                         ?>
                                                                             <tr>
                                                                                 <td>
-                                                                                    <input type="hidden" name="date_de_reservation" value="<?php echo $date->format('Y/M/d');?>">
+                                                                                    <input type="hidden" name="date_de_reservation" value="<?php echo $date->format('Y-M-d');?>">
                                                                                     <input type="hidden" name="heure_debut" value="<?php echo $heure['heure_debut'];?>">
                                                                                     <input type="hidden" name="heure_fin" value="<?php echo $heure['heure_fin'];?>"> 
+                                                                                    <?php echo $day;?>
                                                                                     <input type="hidden" name="jours" value="<?php echo $day;?>"> 
+                                                                                    
+                                                                                    
                                                                                     <select style="width: 93%;" name="nom_societe">
-                                                                                            
-                                                                                            <option value=""></option>
+                                                                                          
+                                                                                            <option value="libre">libre</option>
                                                                                                 <?php
                                                                                                 foreach ($nom_societes as $nom_societe) {
                                                                                                     ?>
-                                                                                                    <option value=""><?php echo $nom_societe['nom_societe'];?></option>
+                                                                                                    <option value="<?php echo $nom_societe['nom_societe'];?>"><?php echo $nom_societe['nom_societe'];?></option>
                                                                                                                                                                 
                                                                                                     <?php
                                                                                                     }
                                                                                                 ?>
                                                                                     </select> 
-                                                                                    
+                                                                                    <input type="hidden" name="<?php echo $day;?>" value="<?php echo $day;?>"> 
                                                                                 </td>
                                                                             </tr>
                                                                         <?php 
@@ -159,11 +162,11 @@ $heures = $intervalle->get_heure_debut();
                                 </tr>  
                                 </tr>
                                 
-                                
+                    </form>
                             
                     </div>       
                 <?php endfor; ?>
-            </form> 
+             
                     
             </tbody>
         </table>

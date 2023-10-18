@@ -16,6 +16,10 @@ class Intervalle {
 
     private $connexion;
 
+    public $heure_debut;
+
+    public $heure_fin;
+
     public function __construct() {
         $this->connexion = connexion();
     }
@@ -42,13 +46,20 @@ class Intervalle {
     
             // Ajouter l'intervalle à la liste
             $intervalles[] = $intervalle;
+            
         }
-    
+            
         // Fermer le résultat
         $resultat->closeCursor();
     
         // Retourner la liste des intervalles
         return $intervalles;
+    }
+    public function toArray() {
+        return [
+            'heure_debut' => $this->heure_debut,
+            'heure_fin' => $this->heure_fin,
+        ];
     }
     public function get_heure_debut(){
         $resultat = $this->connexion->query('SELECT heure_debut, heure_fin FROM intervalles');

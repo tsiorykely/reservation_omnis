@@ -1,71 +1,223 @@
-<link rel="stylesheet" href="public/css/calendar.css">
-<div class="container">
-    <div class="row">
-        <div class="col-md-7 ">
-            <?php
-            require 'src/Date/Month.php';
+<?php
+// Paramètres de connexion à la base de données (à remplacer par vos propres valeurs)
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "reservation_terrain"; 
 
-                $month = new App\Date\Month($_GET['month'] ?? null, $_GET['year'] ?? null);
+// Connexion à la base de données
+$conn = new mysqli($servername, $username, $password, $dbname);
 
-                $start =$month->getStartingDay();
+// Vérification de la connexion
+if ($conn->connect_error) {
+    die("Échec de la connexion : " . $conn->connect_error);
+}
 
-                $firstDay=$start->format('N')==='1'? $start : $month->getStartingDay()->modify('last monday');
+// Fonction pour afficher les heures de réservation
+function afficherHeuresReservation($date, $conn) {
+    $formattedDate = date('Y-m-d', strtotime(str_replace('/', '-', $date)));
 
+    // Requête SQL pour récupérer les heures de réservation pour la date donnée
+    $sql = "SELECT heure_reservation FROM heures_reservation WHERE date_reservation = '$formattedDate'";
+    $result = $conn->query($sql);
 
-            ?>
-            <div >
-                <p>
-                    la date du jours est:
-                    
-                </p>
-            </div>
-            <div class="d-flex flex-row aligni-items-center justify-content-between mx-sm-3">
-                <h1><?php echo  $month->toString();?></h1>
-                <div>
-                    <a href="main_for_user.php?month=<?php echo $month->previousMonth()->month;?>&year=<?php echo $month->previousMonth()->year; ?>" class="btn btn-primary">&lt</a>
-                    <a href="main_for_user.php?month=<?php echo $month->nextMonth()->month;?>&year=<?php echo $month->nextMonth()->year; ?>" class="btn btn-primary">&gt</a>
-                </div>
-            </div>
+    if ($result->num_rows > 0) {
+        echo "<h2>Les Heures de réservation pour $date</h2>";
+        echo "<ul>";
+        while ($row = $result->fetch_assoc()) {
+            echo "<li>" . $row['heure_reservation'] . "</li>";
+        }
+        echo "</ul>";
+    } else {
+        echo "<h2>Aucune réservation pour $date</h2>";
+    }
+}
 
-            <table class="calendar__table calendar__table--<?php echo $month->getWeeks(); ?>weeks">
-                
-                <?php for ($i=0; $i < $month->getWeeks(); $i++): ?>
-                    <tr>
-                        <?php foreach ($month->days as $k => $day):
-                            $date=(clone $firstDay)->modify("+".($k +$i * 7 )."days") ?>
-                                <td class="<?php echo $month->withinMonth($date) ? '': 'calendar__othermonth'?>">
+if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Récupération de la date au format "YYYY-MM-DD" (assumant le format "d/m/Y")
+    $selectedDate = $_POST['selected_date'];
+    $formattedDate = date('Y-m-d', strtotime(str_replace('/', '-', $selectedDate)));
 
-                                    <?php if ($i === 0): ?>
-                                        <div class="calendar__weekday">
-                                        <?php echo $day; ?>
-                                        </div>
-                                    <?php endif; ?>   
-                                        <form action="main_for_user.php?page=aceuil" method="get">
-                                            <input type="hidden" name="year" value="<?php echo $date->format('Y'); ?>">
-                                            <input type="hidden" name="month" value="<?php echo $date->format('m'); ?>">
-                                            <input type="hidden" name="day" value="<?php echo $date->format('d'); ?>">
-                                            <button class="<?php echo'btn btn-primary';?>" type="submit">
-                                                <div class="calendar__day">
-                                                    <?php echo $date->format('d'); ?>
-                                                </div>
-                                            </button>
-                                        </form>
-                                         
+    // Échapper les caractères spéciaux pour éviter les injections SQL
+    $formattedDate = $conn->real_escape_string($formattedDate);
 
+    // Vérification si la date existe déjà dans la base de données
+    $checkSql = $conn->prepare("SELECT * FROM calendrier_dates WHERE selected_date = ?");
+    $checkSql->bind_param("s", $formattedDate);
+    $checkSql->execute();
 
-                                </td>
-                        <?php endforeach ?>
-                    </tr>
-                <?php endfor; ?>	
+    // Récupération du résultat de la requête
+    $result = $checkSql->get_result();
 
+    if ($result->num_rows > 0) {
+        header('Location: autre_page.php?date=' . $formattedDate);
+    } else {
+        // Requête SQL pour insérer la date dans la base de données
+        $insertSql = $conn->prepare("INSERT INTO calendrier_dates (selected_date) VALUES (?)");
+        $insertSql->bind_param("s", $formattedDate);
 
+        if ($insertSql->execute() === TRUE) {
+            header('Location: autre_page.php?date=' . $formattedDate);
+        } else {
+            echo "Erreur : " . $insertSql . "<br>" . $conn->error;
+        }
+    }
+}
+?>
 
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Calendrier</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.1/dist/js/bootstrap.bundle.min.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <style>
+         table {
+            width: 50%;
+            margin: 0 auto;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
 
-            </table>
-        </div>
-        <div class="col-md-5 ">
-           <h2>Les heures du jours </h2>
-           
-        </div>
+        th, td {
+            border: 1px solid black;
+            padding: 10px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #f2f2f2;
+        }
+
+        .navigation {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+<div class="row">
+<div class="row">
+        <div class="col-md-7">
+        <?php
+        function afficherCalendrier($annee, $mois) {
+            $timestamp = mktime(0, 0, 0, $mois, 1, $annee);
+            $nomMois = date('F', $timestamp);
+            $joursDansMois = date('t', $timestamp);
+
+            echo "<h2>Calendrier pour $nomMois $annee</h2>";
+            echo "<div class='navigation'>";
+            echo "<a href='?annee=" . ($mois == 1 ? $annee - 1 : $annee) . "&mois=" . ($mois == 1 ? 12 : $mois - 1) . "'>Mois précédent |</a>";
+            echo "<a href='?annee=" . ($mois == 12 ? $annee + 1 : $annee) . "&mois=" . ($mois == 12 ? 1 : $mois + 1) . "'>Mois suivant</a>  "; 
+            echo "</div>";
+            echo "<table>";
+            echo "<tr><th colspan='7'>$nomMois $annee</th></tr>";
+            echo "<tr><th>Lun</th><th>Mar</th><th>Mer</th><th>Jeu</th><th>Ven</th><th>Sam</th><th>Dim</th></tr>";
+
+            $premierJour = date('N', $timestamp);
+            echo "<tr>";
+
+            for ($jour = 1; $jour < $premierJour; $jour++) {
+                echo "<td></td>";
+            }
+
+            for ($jour = 1; $jour <= $joursDansMois; $jour++) {
+                $jourSemaine = date('N', mktime(0, 0, 0, $mois, $jour, $annee));
+                $date = "$jour/$mois/$annee";
+
+                // Ajout du formulaire dans chaque cellule du calendrier
+                echo "<td>";
+                echo "<form method='GET' action='save_to_db.php'>";
+                echo "<input type='hidden' name='selected_date' value='$date'>";
+                echo "<button type='submit'>$jour</button>";
+                echo "</form>";
+                echo "</td>";
+
+                if ($jourSemaine == 7) {
+                    echo "</tr><tr>";
+                }
+            }
+
+            while ($jourSemaine < 7) {
+                echo "<td></td>";
+                $jourSemaine++;
+            }
+
+            echo "</tr>";
+            echo "</table>";
+        }
+        ?>
+
+        <?php
+        $anneeActuelle = isset($_GET['annee']) ? intval($_GET['annee']) : date('Y');
+        $moisActuel = isset($_GET['mois']) ? intval($_GET['mois']) : date('m');
+        afficherCalendrier($anneeActuelle, $moisActuel);
+        ?>
+    </div>
+    <div class="col-md-5">
+    
+<?php
+$servername = "localhost";
+$username = "root";
+$password = "";
+$dbname = "reservation_terrain";
+
+$conn = new mysqli($servername, $username, $password, $dbname);
+
+if ($conn->connect_error) {
+    die("Échec de la connexion : " . $conn->connect_error);
+}
+
+$id_utilisateur = 1;  // Vous devrez obtenir cela à partir de votre système d'authentification.
+
+$selectedDate = "";
+if(isset($_GET['date'])){
+    $selectedDate = $_GET['date'];
+} elseif(isset($_POST['selected_date'])) {
+    $selectedDate = $_POST['selected_date'];
+}
+
+echo "<h2>Sélectionnez les heures pour le $selectedDate :</h2>";
+
+$query = "SELECT h.id_heure, heure_debut, heure_fin, r.id_reservation FROM heure h
+          LEFT JOIN reservation r ON h.id_heure = r.id_heure AND r.id_date = (SELECT id_date FROM calendrier_dates WHERE selected_date = '$selectedDate')";
+
+$result = $conn->query($query);
+
+if ($result && $result->num_rows > 0) {
+    echo "<form method='POST' action='save_reservation.php'>";
+    echo "<div class='btn-group-vertical'>";
+    while ($row = $result->fetch_assoc()) {
+        $id_heure = $row['id_heure'];
+        $heure_debut = $row['heure_debut'];
+        $heure_fin = $row['heure_fin'];
+        $reservation_id = $row['id_reservation'];
+        $is_reserved = !is_null($reservation_id);
+
+        $buttonClass = $is_reserved ? 'heure-reservee' : '';
+
+        // Condition pour ajouter ou non le checkbox
+        if (!$is_reserved) {
+            echo "<label><input type='checkbox' name='selected_hours[]' value='$id_heure' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+        } else {
+            echo "<label class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+        }
+    }
+    echo "</div>";
+    echo "<input type='hidden' name='selected_date' value='$selectedDate'>";
+    echo "<input type='hidden' name='id_utilisateur' value='$id_utilisateur'>";
+    echo "<button type='submit' name='submit' class='btn btn-primary'>Envoyer</button>";
+    echo "</form>";
+} else {
+    echo "Aucune heure disponible pour cette date.";
+}
+?>
     </div>
 </div>
+    
+</div>
+
+
+</body>
+</html>
