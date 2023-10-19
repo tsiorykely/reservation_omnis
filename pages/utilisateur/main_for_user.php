@@ -1,6 +1,20 @@
-<?php
+<?php 
 session_start();
 
+// Vérification de l'existence de la session
+if (!isset($_SESSION)) {
+  echo 'La session n\'existe pas.';
+  exit();
+}
+
+// Récupération des informations de l'utilisateur
+$nom_utilisateur = $_SESSION['nom_utilisateur'];
+
+// Stockage des informations de l'utilisateur dans une variable
+$informations_utilisateur = 'Bienvenue sur notre site, ' . $nom_utilisateur . ' !';
+
+// Affichage des informations de l'utilisateur dans une paragraphe
+echo '<p>' . $informations_utilisateur . '</p>';
 ?>
 <!DOCTYPE html>
 <html>
@@ -43,7 +57,7 @@ session_start();
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="#"><i class="fa-solid fa-user"></i><?php echo ' '.$_SESSION['nom_utilisateur']; ?></a>
+              <a class="nav-link" aria-current="page" href="#"><i class="fa-solid fa-user"></i></a>
             </li>
           </ul>          
         </div>
@@ -52,15 +66,20 @@ session_start();
   <?php
   	$contenu= 'aceuil';
 				if (isset($_GET['page'])) {
-					$contenu=$_GET['page'];
+					$contenu=$_GET['page'];          
 				}
 				include($contenu.'.php');
 
 	?>
 		 
 	</div>
+<div>
+<?php 
+
+?>
+</div> 
+  
 <script type="text/javascript" src="app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
-

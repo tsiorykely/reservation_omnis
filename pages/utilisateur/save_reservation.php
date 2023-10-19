@@ -1,4 +1,11 @@
 <?php
+session_start(); // Démarrer la session PHP
+
+// Vérifier si le panier de réservations existe dans la session, sinon le créer
+if (!isset($_SESSION['reservation_cart'])) {
+    $_SESSION['reservation_cart'] = array();
+}
+
 $servername = "localhost";
 $username = "root";
 $password = "";
@@ -36,18 +43,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     $stmt_get_date_id->close(); // Fermeture de la requête préparée
 
-    // Requête préparée pour l'insertion
-    $insert_reservation_query = "INSERT INTO reservation (id_date, id_heure, id_utilisateur, date_reservation,nom_utilisateur) 
-                                VALUES (?, ?, ?, CURDATE(),".$_SESSION['nom_utilisateur'].")";
-
-    // Préparation de la requête
-    $stmt = $conn->prepare($insert_reservation_query);
-
-    // Liage des paramètres
-    $stmt->bind_param("iii", $id_date, $heure, $id_utilisateur);
-
+    // Vérifier si l'heure est déjà réservée pour cette date
     foreach ($selected_hours as $heure) {
-        // Vérifier si l'heure est déjà réservée pour cette date
         $check_reservation_query = "SELECT COUNT(*) AS count FROM reservation 
                                    WHERE id_date = ? AND id_heure = ?";
 
@@ -64,20 +61,22 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 echo "L'heure $heure est déjà réservée pour cette date.";
                 exit(); // Arrêter le script si l'heure est déjà réservée
             }
+
+            // Ajouter la réservation au panier temporaire
+            $_SESSION['reservation_cart'][] = array(
+                'id_date' => $id_date,
+                'id_heure' => $heure,
+                'id_utilisateur' => $id_utilisateur,
+                'date_reservation' => date('Y-m-d')
+            );
+
+            header('Location: main_for_user.php?date=' . $formattedDate);
         } else {
             echo "Erreur lors de la vérification de la réservation existante : " . $conn->error;
             exit();
         }
-
-        // Exécution de la requête préparée
-        if ($stmt->execute() === TRUE) {
-            echo "Réservation insérée avec succès pour l'heure $heure.";
-        } else {
-            echo "Erreur lors de l'insertion de la réservation : " . $stmt->error;
-        }
     }
 
-    $stmt->close();  // Fermeture de la requête préparée
     $stmt_check_reservation->close(); // Fermeture de la requête préparée pour la vérification
 }
 

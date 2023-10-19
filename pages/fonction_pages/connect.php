@@ -24,4 +24,8 @@ function connect()
 
     return $pdo;
 }
+function connection()
+{
+
+}
 ?>

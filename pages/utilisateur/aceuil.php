@@ -1,4 +1,5 @@
 <?php
+ 
 // Paramètres de connexion à la base de données (à remplacer par vos propres valeurs)
 $servername = "localhost";
 $username = "root";
@@ -18,14 +19,21 @@ function afficherHeuresReservation($date, $conn) {
     $formattedDate = date('Y-m-d', strtotime(str_replace('/', '-', $date)));
 
     // Requête SQL pour récupérer les heures de réservation pour la date donnée
-    $sql = "SELECT heure_reservation FROM heures_reservation WHERE date_reservation = '$formattedDate'";
+    $sql = "SELECT heure_reservation, id_heure FROM heures_reservation WHERE date_reservation = '$formattedDate'";
     $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         echo "<h2>Les Heures de réservation pour $date</h2>";
         echo "<ul>";
         while ($row = $result->fetch_assoc()) {
-            echo "<li>" . $row['heure_reservation'] . "</li>";
+            $id_heure = $row['id_heure'];
+            $heure_debut = $row['heure_debut'];
+            $heure_fin = $row['heure_fin'];
+
+            // Ajouter l'identifiant de l'heure à la structure de données
+            $row['id_heure'] = $id_heure;
+
+            echo "<li>" . $heure_debut . " - " . $heure_fin . "</li>";
         }
         echo "</ul>";
     } else {
@@ -98,7 +106,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </head>
 <body>
 <div class="row">
-<div class="row">
         <div class="col-md-7">
         <?php
         function afficherCalendrier($annee, $mois) {
@@ -108,8 +115,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
             echo "<h2>Calendrier pour $nomMois $annee</h2>";
             echo "<div class='navigation'>";
-            echo "<a href='?annee=" . ($mois == 1 ? $annee - 1 : $annee) . "&mois=" . ($mois == 1 ? 12 : $mois - 1) . "'>Mois précédent |</a>";
-            echo "<a href='?annee=" . ($mois == 12 ? $annee + 1 : $annee) . "&mois=" . ($mois == 12 ? 1 : $mois + 1) . "'>Mois suivant</a>  "; 
+            echo "<a href='?annee=" . ($mois == 1 ? $annee - 1 : $annee) . "&mois=" . ($mois == 1 ? 12 : $mois - 1) . "'>&lt Mois précédent |</a>";
+            echo "<a href='?annee=" . ($mois == 12 ? $annee + 1 : $annee) . "&mois=" . ($mois == 12 ? 1 : $mois + 1) . "'>Mois suivant &gt</a>  "; 
             echo "</div>";
             echo "<table>";
             echo "<tr><th colspan='7'>$nomMois $annee</th></tr>";
@@ -130,6 +137,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 echo "<td>";
                 echo "<form method='GET' action='save_to_db.php'>";
                 echo "<input type='hidden' name='selected_date' value='$date'>";
+                echo "<input type='hidden' name='id_heure' value='<%= id_heure %>'>";
                 echo "<button type='submit'>$jour</button>";
                 echo "</form>";
                 echo "</td>";
@@ -156,66 +164,89 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         ?>
     </div>
     <div class="col-md-5">
-    
-<?php
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "reservation_terrain";
+                
+            <?php
+            $servername = "localhost";
+            $username = "root";
+            $password = "";
+            $dbname = "reservation_terrain";
 
-$conn = new mysqli($servername, $username, $password, $dbname);
+            $conn = new mysqli($servername, $username, $password, $dbname);
 
-if ($conn->connect_error) {
-    die("Échec de la connexion : " . $conn->connect_error);
-}
+            if ($conn->connect_error) {
+                die("Échec de la connexion : " . $conn->connect_error);
+            }
 
-$id_utilisateur = 1;  // Vous devrez obtenir cela à partir de votre système d'authentification.
+            $id_utilisateur = 1;  // Vous devrez obtenir cela à partir de votre système d'authentification.
 
-$selectedDate = "";
-if(isset($_GET['date'])){
-    $selectedDate = $_GET['date'];
-} elseif(isset($_POST['selected_date'])) {
-    $selectedDate = $_POST['selected_date'];
-}
+            $selectedDate = "";
+            if(isset($_GET['date'])){
+                $selectedDate = $_GET['date'];
+            } elseif(isset($_POST['selected_date'])) {
+                $selectedDate = $_POST['selected_date'];
+            }
 
-echo "<h2>Sélectionnez les heures pour le $selectedDate :</h2>";
+            echo "<h2>Sélectionnez les heures pour le $selectedDate :</h2>";
 
-$query = "SELECT h.id_heure, heure_debut, heure_fin, r.id_reservation FROM heure h
-          LEFT JOIN reservation r ON h.id_heure = r.id_heure AND r.id_date = (SELECT id_date FROM calendrier_dates WHERE selected_date = '$selectedDate')";
+            $query = "SELECT h.id_heure, heure_debut, heure_fin, r.id_reservation FROM heure h
+                    LEFT JOIN reservation r ON h.id_heure = r.id_heure AND r.id_date = (SELECT id_date FROM calendrier_dates WHERE selected_date = '$selectedDate')";
 
-$result = $conn->query($query);
+            $result = $conn->query($query);
 
-if ($result && $result->num_rows > 0) {
-    echo "<form method='POST' action='save_reservation.php'>";
-    echo "<div class='btn-group-vertical'>";
-    while ($row = $result->fetch_assoc()) {
-        $id_heure = $row['id_heure'];
-        $heure_debut = $row['heure_debut'];
-        $heure_fin = $row['heure_fin'];
-        $reservation_id = $row['id_reservation'];
-        $is_reserved = !is_null($reservation_id);
+            if ($result && $result->num_rows > 0) {
+                echo "<form method='POST' action='save_reservation.php'>";
+                echo "<div class='btn-group-vertical'>";
+                while ($row = $result->fetch_assoc()) {
+                    $id_heure = $row['id_heure'];
+                    $heure_debut = $row['heure_debut'];
+                    $heure_fin = $row['heure_fin'];
+                    $reservation_id = $row['id_reservation'];
+                    $is_reserved = !is_null($reservation_id);
 
-        $buttonClass = $is_reserved ? 'heure-reservee' : '';
+                    $buttonClass = $is_reserved ? 'heure-reservee' : '';
 
-        // Condition pour ajouter ou non le checkbox
-        if (!$is_reserved) {
-            echo "<label><input type='checkbox' name='selected_hours[]' value='$id_heure' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
-        } else {
-            echo "<label class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
-        }
-    }
-    echo "</div>";
-    echo "<input type='hidden' name='selected_date' value='$selectedDate'>";
-    echo "<input type='hidden' name='id_utilisateur' value='$id_utilisateur'>";
-    echo "<button type='submit' name='submit' class='btn btn-primary'>Envoyer</button>";
-    echo "</form>";
-} else {
-    echo "Aucune heure disponible pour cette date.";
-}
-?>
+                    // Condition pour ajouter ou non le checkbox
+                    if (!$is_reserved) {
+                        echo "<label><input type='checkbox' name='selected_hours[]' value='$id_heure' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+                    } else {
+                        echo "<label class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+                    }
+                }
+                echo "</div>";
+                echo "<input type='hidden' name='selected_date' value='$selectedDate'>";
+                echo "<input type='hidden' name='id_utilisateur' value='$id_utilisateur'>";
+                echo "<button type='submit' name='submit' class='btn btn-primary'>Envoyer</button>";
+                echo "</form>";
+            } else {
+                echo "Aucune heure disponible pour cette date.";
+            }
+            ?>
     </div>
 </div>
+<?php
+// Vérifier si le panier de réservations existe dans la session
+if (isset($_SESSION['reservation_cart']) && !empty($_SESSION['reservation_cart'])) {
+    // Afficher le panier de réservations
+    echo '<h1>Panier de réservations :</h1>';
+    echo '<ul>';
     
+    foreach ($_SESSION['reservation_cart'] as $reservation) {
+        echo '<li>';
+        echo 'Date de réservation : ' . $reservation['date_reservation'] . '<br>';
+        echo 'Date sélectionnée : ' . $reservation['id_date'] . '<br>';
+        echo 'Heure sélectionnée : ' . $reservation['id_heure'] . '<br>';
+        echo 'ID de l\'utilisateur : ' . $reservation['id_utilisateur'] . '<br>';
+
+        
+        echo '</li>';
+    }
+    
+    echo '</ul>';
+} else {
+    echo 'Le panier de réservations est vide.';
+}
+?>
+
 </div>
 
 

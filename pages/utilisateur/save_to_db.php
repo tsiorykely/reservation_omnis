@@ -1,16 +1,11 @@
 <?php
-// Paramètres de connexion à la base de données (à remplacer par vos propres valeurs)
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "reservation_terrain"; 
-
+require '../fonction_pages/connect.php';
 // Connexion à la base de données
-$conn = new mysqli($servername, $username, $password, $dbname);
+$pdo = connect();
 
 // Vérification de la connexion
-if ($conn->connect_error) {
-    die("Échec de la connexion : " . $conn->connect_error);
+if ($pdo->errorInfo()[1]) {
+    die("Échec de la connexion : " .$pdo->errorInfo()[2]);
 }
 
 if ($_SERVER["REQUEST_METHOD"] === "GET") {
@@ -18,30 +13,30 @@ if ($_SERVER["REQUEST_METHOD"] === "GET") {
     $selectedDate = $_GET['selected_date'];
     $formattedDate = date('Y-m-d', strtotime(str_replace('/', '-', $selectedDate)));
 
-    // Échapper les caractères spéciaux pour éviter les injections SQL
-    $formattedDate = $conn->real_escape_string($formattedDate);
-
     // Vérification si la date existe déjà dans la base de données
-    $checkSql = $conn->prepare("SELECT * FROM calendrier_dates WHERE selected_date = ?");
-    $checkSql->bind_param("s", $formattedDate);
-    $checkSql->execute();
+    $checkSql = "SELECT * FROM calendrier_dates WHERE selected_date = ?";
+    $stmt = $pdo->prepare($checkSql);
+    $stmt->execute(array($formattedDate));
 
     // Récupération du résultat de la requête
-    $result = $checkSql->get_result();
+    $result = $stmt->fetch();
 
-    if ($result->num_rows > 0) {
-        header('Location: aceuil.php?date=' . $formattedDate);
+    if ($result) {
+        header('Location: main_for_user.php?date=' . $formattedDate);
     } else {
         // Requête SQL pour insérer la date dans la base de données
-        $insertSql = $conn->prepare("INSERT INTO calendrier_dates (selected_date) VALUES (?)");
-        $insertSql->bind_param("s", $formattedDate);
+        $insertSql = "INSERT INTO calendrier_dates (selected_date) VALUES (?)";
+        $stmt = $pdo->prepare($insertSql);
+        $stmt->execute(array($formattedDate));
 
-        if ($insertSql->execute() === TRUE) {
-            header('Location: aceuil.php?date=' . $formattedDate);
+        if ($stmt->execute() === TRUE) {
+            header('Location: main_for_user.php?date=' . $formattedDate);
         } else {
-            echo "Erreur : " . $insertSql . "<br>" . $conn->error;
+            echo "Erreur : " . $insertSql . "<br>" . $pdo->errorInfo();
         }
     }
 }
 
+// Fermeture de la connexion
+$pdo = null;
 ?>

@@ -1,5 +1,7 @@
 <?php
 require 'connect.php';
+
+// Démarrage de la session PHP
 session_start();
 
 // Utilisation de la fonction connect() pour se connecter à la base de données
@@ -31,14 +33,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Si la requête renvoie un résultat, l'utilisateur est connecté
     if ($stmt->rowCount() == 1) {
+        
         // Récupération des informations de l'utilisateur
         $row = $stmt->fetch(PDO::FETCH_ASSOC);
         $nom_utilisateur = $row['nom'];
-        $mot_de_passe = $row['mot_de_passe'];
+        $id_utilisateur = $row['id']; // Assurez-vous d'avoir l'id de l'utilisateur
 
-        // Association de la session avec les informations de l'utilisateur
         $_SESSION['nom_utilisateur'] = $nom_utilisateur;
-        $_SESSION['mot_de_passe'] = $mot_de_passe;
+        $_SESSION['id_utilisateur'] = $id_utilisateur;
 
         // Redirection vers la page correspondante
         header("Location: ../utilisateur/main_for_user.php"); // Rediriger vers la page utilisateur
@@ -54,6 +56,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
     // Si la requête renvoie un résultat, l'utilisateur est connecté
     if ($stmt->rowCount() == 1) {
+        
         // Association de la session avec le rôle de l'utilisateur
         $_SESSION['role'] = 'admin';
 
@@ -65,8 +68,4 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Si aucune des requêtes n'a renvoyé un résultat, l'utilisateur est non connecté
     echo "Nom d'utilisateur ou mot de passe incorrect.";
 }
-
-
-
-
 ?>
