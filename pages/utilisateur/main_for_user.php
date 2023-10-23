@@ -1,20 +1,25 @@
-<?php 
+<?php
 session_start();
+// Vérification de la session
+if (isset($_SESSION['role'])) {
+    // Inclusion du code de connexion à la base de données
+    include('../fonction_pages/connect.php');
 
-// Vérification de l'existence de la session
-if (!isset($_SESSION)) {
-  echo 'La session n\'existe pas.';
-  exit();
-}
+    // Récuperation de l'identifiant de l'utilisateur connecté
+    $user_id = $_SESSION['user_id'];
 
-// Récupération des informations de l'utilisateur
-$nom_utilisateur = $_SESSION['nom_utilisateur'];
+    // Requête pour récupérer les informations de l'utilisateur connecté
+    $pdo=connect();
+    $sql = "SELECT * FROM utilisateur WHERE id_utilisateurs = :user_id";
+    $stmt = $pdo->prepare($sql);
+    $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);
+    $stmt->execute();
 
-// Stockage des informations de l'utilisateur dans une variable
-$informations_utilisateur = 'Bienvenue sur notre site, ' . $nom_utilisateur . ' !';
-
-// Affichage des informations de l'utilisateur dans une paragraphe
-echo '<p>' . $informations_utilisateur . '</p>';
+    // Vérification du résultat de la requête
+    if ($stmt->rowCount() > 0) {
+        // La requête a retourné des résultats
+        $user = $stmt->fetch();
+    
 ?>
 <!DOCTYPE html>
 <html>
@@ -57,12 +62,19 @@ echo '<p>' . $informations_utilisateur . '</p>';
             </li>
 
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="#"><i class="fa-solid fa-user"></i></a>
+              <a class="nav-link" aria-current="page" href="#"><i class="fa-solid fa-user"></i> <?php echo $user['nom_utilisateur'];?></a>
+            </li>
+            <li class="nav-item">
+              <a href="#" data-toggle="modal" data-target="#exampleModal" class="nav-link">
+                <i class="fas fa-cart-arrow-down"></i>
+                Mon pannier
+              </a>
             </li>
           </ul>          
         </div>
       </div>
   </nav>
+  
   <?php
   	$contenu= 'aceuil';
 				if (isset($_GET['page'])) {
@@ -72,14 +84,27 @@ echo '<p>' . $informations_utilisateur . '</p>';
 
 	?>
 		 
+     
 	</div>
 <div>
 <?php 
 
 ?>
 </div> 
-  
-<script type="text/javascript" src="app.js"></script>
+
+<script type="text/javascript" src="../../../js/main_for_user.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
+<?php
+
+} else {
+  // La requête n'a pas retourné de résultats
+  echo "Aucun résultat trouvé";
+}
+} else {
+// L'utilisateur n'est pas connecté
+header("Location: ../../index.php");
+}
+?>

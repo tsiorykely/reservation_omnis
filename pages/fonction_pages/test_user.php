@@ -18,6 +18,9 @@ if ($pdo === false) {
     exit();
 }
 
+// Démarrage de la session PHP
+session_start();
+
 // Vérification de la méthode de la requête
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Récupération des données de la requête
@@ -34,14 +37,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Si la requête renvoie un résultat, l'utilisateur est connecté
     if ($stmt->rowCount() == 1) {
         
+        // Association de la session avec le rôle utilisateur
+        $_SESSION['role'] = 'utilisateur';
         // Récupération des informations de l'utilisateur
-        $row = $stmt->fetch(PDO::FETCH_ASSOC);
-        $nom_utilisateur = $row['nom'];
-        $id_utilisateur = $row['id']; // Assurez-vous d'avoir l'id de l'utilisateur
-
-        $_SESSION['nom_utilisateur'] = $nom_utilisateur;
-        $_SESSION['id_utilisateur'] = $id_utilisateur;
-
+        $user = $stmt->fetch();
+        
+            $_SESSION['user_id'] = $user['id_utilisateurs'];
+            $_SESSION['user_nom'] = $user['nom_utilisateurs'];
+          
         // Redirection vers la page correspondante
         header("Location: ../utilisateur/main_for_user.php"); // Rediriger vers la page utilisateur
         exit();
@@ -57,7 +60,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Si la requête renvoie un résultat, l'utilisateur est connecté
     if ($stmt->rowCount() == 1) {
         
-        // Association de la session avec le rôle de l'utilisateur
+        // Association de la session avec le rôle administrateur
         $_SESSION['role'] = 'admin';
 
         // Redirection vers la page correspondante
@@ -68,4 +71,5 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Si aucune des requêtes n'a renvoyé un résultat, l'utilisateur est non connecté
     echo "Nom d'utilisateur ou mot de passe incorrect.";
 }
+
 ?>
