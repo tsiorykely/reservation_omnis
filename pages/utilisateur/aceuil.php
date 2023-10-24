@@ -116,61 +116,63 @@
         ?>
     </div>
     <div class="col-md-5" id="heure">
-    <?php
-                $servername = "localhost";
-                $username = "root";
-                $password = "";
-                $dbname = "reservation_terrain";
+        <?php
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = "";
+                    $dbname = "reservation_terrain";
 
-                $conn = new mysqli($servername, $username, $password, $dbname);
+                    $conn = new mysqli($servername, $username, $password, $dbname);
 
-                if ($conn->connect_error) {
-                    die("Échec de la connexion : " . $conn->connect_error);
-                }
-
-                $selectedDate = "";
-                if(isset($_GET['date'])){
-                    $selectedDate = $_GET['date'];
-                } elseif(isset($_POST['selected_date'])) {
-                    $selectedDate = $_POST['selected_date'];
-                }
-
-                echo "<h5>Sélectionnez les heures pour le $selectedDate :</h5>";
-
-                $query = "SELECT h.id_heure, heure_debut, heure_fin, r.id_reservation FROM heure h
-                          LEFT JOIN reservation r ON h.id_heure = r.id_heure AND r.id_date = (SELECT id_date FROM calendrier_dates WHERE selected_date = '$selectedDate')";
-
-                $result = $conn->query($query);
-
-                if ($result && $result->num_rows > 0) {
-                    echo "<form method='POST' action='reservation.php'>";
-                    echo "<div class='btn-group-vertical'>";
-                    while ($row = $result->fetch_assoc()) {
-                        $id_heure = $row['id_heure'];
-                        $heure_debut = $row['heure_debut'];
-                        $heure_fin = $row['heure_fin'];
-                        $reservation_id = $row['id_reservation'];
-                        $is_reserved = !is_null($reservation_id);
-
-                        $buttonClass = $is_reserved ? 'heure-reservee' : '';
-
-                        // Condition pour ajouter ou non le checkbox
-                        if (!$is_reserved) {
-                            echo "<label><input type='checkbox' id='box' name='selected_hours[]' value='$id_heure' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
-                        } else {
-                            echo "<label id='box' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
-                        }
+                    if ($conn->connect_error) {
+                        die("Échec de la connexion : " . $conn->connect_error);
                     }
-                    echo "</div>";
-                    echo "<input type='hidden' name='selected_date' value='$selectedDate'>";
-                    echo "<div>";
-                    echo "<button type='submit' name='submit' id='envoyer' class='btn btn-primary'>Envoyer</button>";
-                    echo "</div>";
-                    echo "</form>";
-                } else {
-                    echo "Aucune heure disponible pour cette date.";
-                }
-                ?>
+
+                    $selectedDate = "";
+                    if(isset($_GET['date'])){
+                        $selectedDate = $_GET['date'];
+                    } elseif(isset($_POST['selected_date'])) {
+                        $selectedDate = $_POST['selected_date'];
+                    }
+
+                    echo "<h5>Sélectionnez les heures pour le $selectedDate :</h5>";
+
+                    $query = "SELECT h.id_heure, heure_debut, heure_fin, r.id_reservation FROM heure h
+                            LEFT JOIN reservation r ON h.id_heure = r.id_heure AND r.id_date = (SELECT id_date FROM calendrier_dates WHERE selected_date = '$selectedDate')";
+
+                    $result = $conn->query($query);
+
+                    if ($result && $result->num_rows > 0) {
+                        echo "<form method='POST' action='reservation.php'>";
+                        echo "<div class='btn-group-vertical'>";
+                        while ($row = $result->fetch_assoc()) {
+                            $id_heure = $row['id_heure'];
+                            $heure_debut = $row['heure_debut'];
+                            $heure_fin = $row['heure_fin'];
+                            $reservation_id = $row['id_reservation'];
+                            $is_reserved = !is_null($reservation_id);
+
+                            $buttonClass = $is_reserved ? 'heure-reservee' : '';
+
+                            // Condition pour ajouter ou non le checkbox
+                            if (!$is_reserved) {
+                                echo "<label><input type='checkbox' id='box' name='selected_hours[]' value='$id_heure' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+                            } else {
+                                echo "<label id='box' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+                            }
+                        }
+                        echo "</div>";
+                        echo "<input type='hidden' name='selected_date' value='$selectedDate'>";
+                        echo "<input type='hidden' name='heure_debut' value='$heure_debut'>";
+                        echo "<input type='hidden' name='heure_fin' value='$heure_fin'>";                        
+                        echo "<div>";
+                        echo "<button type='submit' name='submit' id='envoyer' class='btn btn-primary'>Envoyer</button>";
+                        echo "</div>";
+                        echo "</form>";
+                    } else {
+                        echo "Aucune heure disponible pour cette date.";
+                    }
+        ?>
     </div>
 </div>
 
