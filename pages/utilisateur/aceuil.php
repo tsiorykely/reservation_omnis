@@ -1,7 +1,10 @@
+<<<<<<< HEAD
 <?php
 session_start();
 
 ?>
+=======
+>>>>>>> 1b60908d115f16dde1d8b01edac50c0c9851fbed
 <!DOCTYPE html>
 <html>
 <head>
@@ -41,6 +44,7 @@ session_start();
             pointer-events: none; /* Désactiver les événements pointer pour empêcher la sélection */
         }
 
+<<<<<<< HEAD
         #btn {
             color: white;
             background-color: green;
@@ -49,6 +53,9 @@ session_start();
             margin-top:190px;
             margin-left:-90px;
         }
+=======
+        
+>>>>>>> 1b60908d115f16dde1d8b01edac50c0c9851fbed
         h5{
             text-align:center;
             margin-top:50px;
@@ -127,6 +134,7 @@ session_start();
         ?>
     </div>
     <div class="col-md-5" id="heure">
+<<<<<<< HEAD
     <?php
                 $servername = "localhost";
                 $username = "root";
@@ -183,6 +191,94 @@ session_start();
     </div>
 </div>
 </div>
+=======
+        <?php
+                    $servername = "localhost";
+                    $username = "root";
+                    $password = "";
+                    $dbname = "reservation_terrain";
+
+                    $conn = new mysqli($servername, $username, $password, $dbname);
+
+                    if ($conn->connect_error) {
+                        die("Échec de la connexion : " . $conn->connect_error);
+                    }
+
+                    $selectedDate = "";
+                    if(isset($_GET['date'])){
+                        $selectedDate = $_GET['date'];
+                    } elseif(isset($_POST['selected_date'])) {
+                        $selectedDate = $_POST['selected_date'];
+                    }
+
+                    echo "<h5>Sélectionnez les heures pour le $selectedDate :</h5>";
+
+                    $query = "SELECT h.id_heure, heure_debut, heure_fin, r.id_reservation FROM heure h
+                            LEFT JOIN reservation r ON h.id_heure = r.id_heure AND r.id_date = (SELECT id_date FROM calendrier_dates WHERE selected_date = '$selectedDate')";
+
+                    $result = $conn->query($query);
+
+                    if ($result && $result->num_rows > 0) {
+                        echo "<form method='POST' action='reservation.php'>";
+                        echo "<div class='btn-group-vertical'>";
+                        while ($row = $result->fetch_assoc()) {
+                            $id_heure = $row['id_heure'];
+                            $heure_debut = $row['heure_debut'];
+                            $heure_fin = $row['heure_fin'];
+                            $reservation_id = $row['id_reservation'];
+                            $is_reserved = !is_null($reservation_id);
+
+                            $buttonClass = $is_reserved ? 'heure-reservee' : '';
+
+                            // Condition pour ajouter ou non le checkbox
+                            if (!$is_reserved) {
+                                echo "<label><input type='checkbox' id='box' name='selected_hours[]' value='$id_heure' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+                            } else {
+                                echo "<label id='box' class='$buttonClass'>$heure_debut - $heure_fin</label><br>";
+                            }
+                        }
+                        echo "</div>";
+                        echo "<input type='hidden' name='selected_date' value='$selectedDate'>";
+                        echo "<input type='hidden' name='heure_debut' value='$heure_debut'>";
+                        echo "<input type='hidden' name='heure_fin' value='$heure_fin'>";                        
+                        echo "<div>";
+                        echo "<button type='submit' name='submit' id='envoyer' class='btn btn-primary'>Envoyer</button>";
+                        echo "</div>";
+                        echo "</form>";
+                    } else {
+                        echo "Aucune heure disponible pour cette date.";
+                    }
+        ?>
+    </div>
+</div>
+
+<!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="exampleModalLabel">Titre du Modal</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <!-- Contenu du modal -->
+        <p>Contenu du modal ici.</p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+        <button type="button" class="btn btn-primary">Sauvegarder les modifications</button>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+>>>>>>> 1b60908d115f16dde1d8b01edac50c0c9851fbed
 
 </body>
 </html>
