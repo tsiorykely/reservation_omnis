@@ -1,23 +1,8 @@
 <?php
-session_start(); // Démarrer la session PHP
-
-// Vérifier si le panier de réservations existe dans la session, sinon le créer
-if (!isset($_SESSION['reservation_cart'])) {
-    $_SESSION['reservation_cart'] = array();
-}
-
-$servername = "localhost";
-$username = "root";
-$password = "";
-$dbname = "reservation_terrain";
-
-$conn = new mysqli($servername, $username, $password, $dbname);
-
-if ($conn->connect_error) {
-    die("Échec de la connexion : " . $conn->connect_error);
-}
+session_start();
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
+    // Vérifiez si les variables sont définies
     $selected_date = isset($_POST['selected_date']) ? $_POST['selected_date'] : "";
     $selected_hours = isset($_POST['selected_hours']) ? $_POST['selected_hours'] : array();
     $id_utilisateur = isset($_POST['id_utilisateur']) ? $_POST['id_utilisateur'] : "";
@@ -27,7 +12,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         exit();
     }
 
-    // Obtenir l'ID de la date en fonction de la date sélectionnée
+    $nom_serveur = "localhost"; // Utilisez "localhost" au lieu de "hôte local"
+    $nom_utilisateur = "root"; // Utilisez "root" au lieu de "racine"
+    $mot_de_passe = "";
+    $dbname = "reservation_terrain";
+
+    $conn = new mysqli($nom_serveur, $nom_utilisateur, $mot_de_passe, $dbname);
+
+    if ($conn->connect_error) {
+        die("Échec de la connexion : " . $conn->connect_error);
+    }
+
+    // Obtention de l'ID de la date en fonction de la date sélectionnée
     $get_date_id_query = "SELECT id_date FROM calendrier_dates WHERE selected_date = ?";
     $stmt_get_date_id = $conn->prepare($get_date_id_query);
     $stmt_get_date_id->bind_param("s", $selected_date);
@@ -45,10 +41,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
     // Vérifier si l'heure est déjà réservée pour cette date
     foreach ($selected_hours as $heure) {
-        $check_reservation_query = "SELECT COUNT(*) AS count FROM reservation 
-                                   WHERE id_date = ? AND id_heure = ?";
-
-        // Préparation et exécution de la requête préparée pour la vérification
+        $check_reservation_query = "SELECT COUNT(*) AS count FROM reservation WHERE id_date = ? AND id_heure = ?";
         $stmt_check_reservation = $conn->prepare($check_reservation_query);
         $stmt_check_reservation->bind_param("ii", $id_date, $heure);
         $stmt_check_reservation->execute();
@@ -67,18 +60,18 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 'id_date' => $id_date,
                 'id_heure' => $heure,
                 'id_utilisateur' => $id_utilisateur,
-                'date_reservation' => date('Y-m-d')
+                'date_reservation' => date('Ymd')
             );
-
-            header('Location: main_for_user.php?date=' . $formattedDate);
         } else {
             echo "Erreur lors de la vérification de la réservation existante : " . $conn->error;
             exit();
         }
+
+        $stmt_check_reservation->close(); // Fermeture de la requête préparée pour la vérification
     }
 
-    $stmt_check_reservation->close(); // Fermeture de la requête préparée pour la vérification
+    // Rediriger vers une autre page après la soumission du formulaire
+    header('Location: main_for_user.php?date=' . $selected_date);
+    exit();
 }
-
-$conn->close();
 ?>
