@@ -1,6 +1,5 @@
 <?php
 session_start();
-var_dump($user_id); 
 ?>
 <!DOCTYPE html>
 <html>
@@ -45,7 +44,7 @@ var_dump($user_id);
                 echo "<td>";
                 echo "<form method='post' action='save_to_db.php'>";
                 echo "<input type='hidden' name='selected_date' value='$date'>";
-                echo "<button type='submit'>$jour</button>";
+                echo "<button type='submit' class='btn btn-secondary'>$jour</button>";
                 echo "</form>";
                 echo "</td>";
 
@@ -126,6 +125,7 @@ var_dump($user_id);
                 }
                 ?>
     </div>
+
 </div>
 </div>
 

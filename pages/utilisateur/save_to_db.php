@@ -39,6 +39,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         if ($insertSql->execute() === TRUE) {
             header('Location: main_for_user.php?date=' . $formattedDate);
         } else {
+
+    echo"erreur be";
             echo "Erreur : " . $insertSql . "<br>" . $conn->error;
         }
     }

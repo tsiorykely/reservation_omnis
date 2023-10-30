@@ -6,6 +6,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $selected_date = isset($_POST['selected_date']) ? htmlspecialchars($_POST['selected_date']) : null;
     $selected_hours = isset($_POST['selected_hours']) ? $_POST['selected_hours'] : [];
     $id_utilisateur = isset($_POST['id_utilisateur']) ? htmlspecialchars($_POST['id_utilisateur']) : null;
+    
+    var_dump($selected_date );
 
     if (empty($selected_date) || empty($id_utilisateur)) {
         echo "Veuillez sélectionner une date et un utilisateur.";
@@ -39,19 +41,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             'id_date' => $id_date,
             'id_heure' => $heure,
             'id_utilisateur' => $id_utilisateur,
+            'selected_date '=> $selected_date ,
             'date_reservation' => date('Y/m/d')
         );
     }
 
-    // Créer un statut temporaire
-    $_SESSION['temporary_status'] = array(
-        'selected_date' => $selected_date,
-        'selected_hours' => $selected_hours,
-        'id_utilisateur' => $id_utilisateur
-    );
 
     // Redirection vers la page principale pour l'utilisateur
     header('Location: main_for_user.php');
-    exit();
+    exit(); 
 }
 ?>

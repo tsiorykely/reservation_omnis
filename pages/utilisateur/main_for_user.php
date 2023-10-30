@@ -7,6 +7,9 @@ if (isset($_SESSION['role'])) {
 
     // Récuperation de l'identifiant de l'utilisateur connecté
     $user_id = $_SESSION['user_id'];
+    
+            
+    setlocale(LC_TIME, 'fr_FR');
 
     // Requête pour récupérer les informations de l'utilisateur connecté
     $pdo=connect();
@@ -49,26 +52,29 @@ if (isset($_SESSION['role'])) {
               <a class="nav-link" aria-current="page" href="main_for_user.php?page=aceuil">Acceuil</a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="main_for_user.php?page=reservation">Mes reservations</a>
+              <a class="nav-link" aria-current="page" href="main_for_user.php?page=reservation"><i class="fa fa-list" aria-hidden="true"></i> Mes reservations </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="main_for_user.php?page=message">Messages</a>
+              <a class="nav-link" aria-current="page" href="main_for_user.php?page=message">Messages <i class="far fa-comment-alt"></i> </a>
             </li>
             <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="main_for_user.php?page=commentaire">Commentaires</a>
+              <a class="nav-link" aria-current="page" href="main_for_user.php?page=commentaire">Commentaires <i class="far fa-comment"></i> </a>
+            
+
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="#"><?php echo $user['nom_utilisateur'];?>  <i class="fa-solid fa-user"></i> </a>
+            </li>
+
+            <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="#" data-bs-target="#reservation-modal" data-bs-toggle="modal">
+                Pannier <i class="fa fa-shopping-cart" aria-hidden="true"></i> <span id="reservation-count" class="badge badge-danger">0</span>
+              </a>
+            </li>
+
             </li>
              <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="../fonction_pages/deconnection_admin.php">Deconnexion</a>
+              <a class="nav-link" aria-current="page" href="../fonction_pages/deconnection_admin.php"><i class="fa fa-sign-out" aria-hidden="true"></i> Deconnexion</a>
             </li>
-
-            <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="#"><i class="fa-solid fa-user"></i> <?php echo $user['nom_utilisateur'];?></a>
-            </li>
-
-            <li class="nav-item">
-  <a class="nav-link" aria-current="page" href="#" data-bs-target="#reservation-modal" data-bs-toggle="modal"><i class="fa-light fa-cart-shopping"></i>pannier </a>
-</li>
-
           </ul>          
         </div>
       </div>
@@ -82,18 +88,37 @@ if (isset($_SESSION['role'])) {
         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
       <div class="modal-body">
-        <?php
-            if (isset($_SESSION['temporary_status'])) {
-                // Obtenir le statut temporaire à partir de la variable de session
-                $temporary_status = $_SESSION['temporary_status'];
-
-                // Afficher le statut temporaire
-                echo "<h1>Statut temporaire</h1>";
-                echo "<p>Date sélectionnée : " . $temporary_status['selected_date'] . "</p>";
-                echo "<p>Heures sélectionnées : " . implode(", ", $temporary_status['selected_hours']) . "</p>";
-                echo "<p>Identifiant de l'utilisateur : " . $temporary_status['id_utilisateur'] . "</p>";
+       
+            <?php
+            session_start(); // Démarrer la session PHP
+            $conn=$pdo;
+            try {
+                $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            } catch (PDOException $e) {
+                die("Échec de la connexion : " . $e->getMessage());
             }
-        ?>
+
+            // ... (votre code existant)
+
+            // Affichage du panier de réservations
+            if (isset($_SESSION['reservation_cart']) && !empty($_SESSION['reservation_cart'])) {
+                echo '<h1>Panier de réservations :</h1>';
+                echo '<ol>';
+                
+                foreach ($_SESSION['reservation_cart'] as $reservation) {
+                    echo '<li>';
+                    echo 'Date de réservation : ' . $reservation['date_reservation'] . '<br>';
+                    echo 'Date du reservation : ' . $reservation['selected_date'] . '<br>';
+                    echo 'Heure sélectionnée : ' . $reservation['id_heure'] . '<br>';
+                    echo 'ID de l\'utilisateur : ' . $reservation['id_utilisateur'] . '<br>';
+                    echo '</li>';
+                }
+                
+                echo '</ol>';
+            } else {
+                echo 'Le panier de réservations est vide.';
+            }
+            ?>
 
       </div>
       <div class="modal-footer">
@@ -121,7 +146,9 @@ if (isset($_SESSION['role'])) {
 </div> 
   
 <script type="text/javascript" src="app.js"></script>
+<script type="text/javascript" src="../../js/panier_count.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+
 </body>
 </html>
 <?php
